@@ -14,7 +14,7 @@ else:
     assistant_id = "asst_qOQodrhsPuo6VmwhHJa1mMP3"
 
     if "thread_id" not in st.session_state:
-        # Neuen Thread (Gespräch) anlegen
+        # Neuen Thread anlegen
         thread = client.beta.threads.create()
         st.session_state.thread_id = thread.id
         st.session_state.messages = []
@@ -43,11 +43,16 @@ else:
             assistant_id=assistant_id,
         )
 
-        # Antwort aus dem Run holen
-        assistant_response = run.response.get("choices", [{}])[0].get("message", {}).get("content", "")
+        # Antwort aus dem Run holen (sicher und geprüft)
+        assistant_response = ""
+        if hasattr(run, "choices") and len(run.choices) > 0:
+            assistant_response = run.choices[0].message.content
+        elif hasattr(run, "message") and hasattr(run.message, "content"):
+            assistant_response = run.message.content
+        else:
+            assistant_response = "Keine Antwort vom Assistenten erhalten."
 
         # Antwort speichern und anzeigen
         st.session_state.messages.append({"role": "assistant", "content": assistant_response})
         with st.chat_message("assistant"):
             st.markdown(assistant_response)
-
